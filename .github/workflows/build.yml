@@ -23,11 +23,16 @@ jobs:
         run: |
           set -o pipefail
           gradle assembleDebug --no-daemon --console=plain 2>&1 | tee build.log
-      - name: Show errors
+      - name: Errors part 1
         if: failure()
         working-directory: NexLauncher
         run: |
-          grep -E "^e: |^\* What went wrong|^> " build.log | head -10 | sed 's/^/::error::/'
+          grep -E "^e: |FAILED|error:|AAPT|aapt" build.log | head -9 | sed 's/^/::error::/'
+      - name: Errors part 2
+        if: failure()
+        working-directory: NexLauncher
+        run: |
+          sed -n '/What went wrong/,/Try:/p' build.log | head -9 | sed 's/^/::error::/'
       - uses: actions/upload-artifact@v4
         with:
           name: NexLauncher-apk

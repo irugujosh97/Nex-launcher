@@ -20,7 +20,14 @@ jobs:
         run: unzip -q NexLauncher.zip
       - name: Build debug APK
         working-directory: NexLauncher
-        run: gradle assembleDebug --no-daemon
+        run: |
+          set -o pipefail
+          gradle assembleDebug --no-daemon --console=plain 2>&1 | tee build.log
+      - name: Show errors
+        if: failure()
+        working-directory: NexLauncher
+        run: |
+          grep -E "^e: |^\* What went wrong|^> " build.log | head -10 | sed 's/^/::error::/'
       - uses: actions/upload-artifact@v4
         with:
           name: NexLauncher-apk
